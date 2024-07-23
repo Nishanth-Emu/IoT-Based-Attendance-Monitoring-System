@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/dist/output.css" />
+    <title>Attendance System</title>
+    <script src="./table2excel.js"></script>
+  </head>
+  <body>
+    <div id="login_div" class="min-h-screen bg-gray-100 text-gray-800 antialiased px-4 py-6 flex flex-col justify-center sm:py-12">
+        <div class="relative py-3 sm:max-w-xl mx-auto text-center">
+          <span class="text-2xl font-light">Login to your account</span>
+          <div class="relative mt-4 bg-white shadow-md sm:rounded-lg text-left">
+            <div class="h-2 bg-indigo-400 rounded-t-md"></div>
+            <div class="py-6 px-8">
+              <label class="block font-semibold">Email<label>
+              <input type="text" placeholder="Email" id="input-email" class=" border w-full h-5 px-3 py-5 mt-2 hover:outline-none focus:outline-none focus:ring-1 focus:ring-indigo-600 rounded-md">
+              <label class="block mt-3 font-semibold">Password<label>
+              <input type="password" placeholder="Password" id="input-password" class=" border w-full h-5 px-3 py-5 mt-2 hover:outline-none focus:outline-none focus:ring-1 focus:ring-indigo-600 rounded-md">
+              <div class="flex justify-between items-baseline">
+                <button class="mt-4 bg-indigo-500 text-white py-2 px-6 rounded-lg" id="login">Login</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="user_div" class="min-h-screen bg-gray-100 text-gray-800 antialiased px-4 flex flex-col justify-center sm:py-12 shadow-2xl">
+        <div class="ml-10">
+          <button class="bg-indigo-500 text-white px-4 py-2 rounded" id="menu-btn">Date</button>
+          <div class="bg-gray-200 hidden flex-col rounded mt-1 p-2 text-sm w-32" id="dropdown">
+              <a href="#" class="px-2 py-1 hover:bg-indigo-500 rounded"></a>
+              <a href="data.html" id="display" class="px-2 py-1 hover:bg-indigo-500 rounded">04/07/2022</a>
+              <!-- <a href="#" class="px-2 py-1 hover:bg-indigo-500 rounded"></a> -->
+          </div>
+        </div>
+        <div class="relative py-3 sm:max-w-xl mx-auto text-center"> 
+          <span class="text-2xl font-light">Welcome</span>
+          <div class="relative mt-4 bg-white shadow-md sm:rounded-lg text-left">
+            <div class="h-2 bg-indigo-400 rounded-t-md"></div>
+            <div class="py-6 px-8">
+              <h2 id="user-para"></h2>
+              <div class="flex justify-between items-baseline">
+                <button id="logout" class="mt-4 bg-indigo-500 text-white py-2 px-6 rounded-lg">Logout</button>
+              </div>
+            </div>
+          </div>
+        </div> 
+        <div class="p-5 bg-gray-100">
+            <div class="flex justify-between">
+                <h1 class="text-xl mb-2">Attendance Details</h1>
+                <div>
+                  <h2>
+                    Total No.of students: 3
+                  </h2>
+                </div>
+                <button id="exportData" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 mb-2 px-4 rounded inline-flex items-center">
+                  <svg class="fill-current w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/></svg>
+                  <span>Download</span>
+                </button>
+            </div>
+              <div class="overflow-auto rounded-lg shadow hidden md:block">
+                <table id="tbattendance" class="w-full">
+                  <thead class="bg-gray-100 border-b-2 border-gray-200">
+                  <tr>
+                    <th class="w-20 p-3 text-sm font-semibold tracking-wide text-left">S.No</th>
+                    <th class="p-3 text-sm font-semibold tracking-wide text-left">Card_ID</th>
+                    <th class="w-24 p-3 text-sm font-semibold tracking-wide text-left">Name</th>
+                    <th class="w-24 p-3 text-sm font-semibold tracking-wide text-left">Face_ID</th>
+                    <th class="w-32 p-3 text-sm font-semibold tracking-wide text-left">Status</th>
+                  </tr>
+                  </thead>
+                  <tbody id="tbody1"  class="divide-y divide-gray-100">
+                  <!-- <tr class="bg-white">
+                    <td class="p-3 text-sm text-gray-700 whitespace-nowrap">
+                      <a href="#" class="font-bold text-blue-500 hover:underline"></a>
+                    </td>
+                    <td class="p-3 text-sm text-gray-700 whitespace-nowrap"></td>
+                    <td class="p-3 text-sm text-gray-700 whitespace-nowrap"></td>          
+                    <td class="p-3 text-sm text-gray-700 whitespace-nowrap"></td>
+                    <td class="p-3 text-sm text-gray-700 whitespace-nowrap">
+                        <span class="p-1.5 text-xs font-medium uppercase tracking-wider text-green-800 bg-green-200 rounded-lg bg-opacity-50"></span>
+                    </td>
+                  </tr>        -->
+                  </tbody>
+                </table>
+              </div>
+        </div>
+</body>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-auth.js";
+    import { getDatabase, ref, onValue, child, get } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBVxy4oK6LzUREKBSgik39cxkxUl_Ea64M",
+      authDomain: "batch7-project-a09d0.firebaseapp.com",
+      databaseURL: "https://batch7-project-a09d0-default-rtdb.firebaseio.com",
+      projectId: "batch7-project-a09d0",
+      storageBucket: "batch7-project-a09d0.appspot.com",
+      messagingSenderId: "976184391607",
+      appId: "1:976184391607:web:d1b45ebef488e440981a32"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    let loginbtn = document.getElementById("login")
+    let logoutbtn = document.getElementById("logout")
+    let downloadbtn = document.getElementById("exportData")
+    let displaybtn = document.getElementById("display")
+    const db = getDatabase(app);
+    const auth = getAuth()
+    const user = auth.currentUser;
+
+    displaybtn.addEventListener("click", () => {
+        document.getElementById("displaytable").style.display = "flex"; 
+        console.log('clicked');
+    });
+
+    loginbtn.addEventListener("click", () => {
+      let inputEmail = document.getElementById("input-email").value
+      let inputPass = document.getElementById("input-password").value
+
+     signInWithEmailAndPassword(auth, inputEmail, inputPass)
+    .then((userCredential) => {
+      const user = userCredential.user
+    })
+    .catch((error) => {
+      const errorCode = error.code
+      const errorMessage = error.message
+      alert(errorMessage)
+    })
+})
+
+logoutbtn.addEventListener('click', () => {
+  signOut(auth).then(() => {
+  // Sign-out successful.
+}).catch((error) => {
+  // An error happened.
+});
+})
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById("user_div").style.display = "flex"
+    document.getElementById("login_div").style.display = "none"
+
+    if (user !== null) {
+      const email = user.email;
+      
+      document.getElementById('user-para').innerHTML = "User :" + email
+}
+
+  } else {
+    document.getElementById("user_div").style.display = "none"
+    document.getElementById("login_div").style.display = "flex"
+  }
+})
+   downloadbtn.addEventListener('click', () => {
+    var table2excel = new Table2Excel();
+    table2excel.export(document.querySelectorAll("#tbattendance"));
+})
+
+const tbody = document.getElementById('tbody1')
+var stdNo = 0
+
+function AddItemToTable(name,face_id,mask,status) {
+
+  let tr = document.createElement('tr')
+  let td1 = document.createElement('td')
+  let td2 = document.createElement('td')
+  let td3 = document.createElement('td')
+  let td4 = document.createElement('td')
+  let td5 = document.createElement('td')
+
+  td1.innerHTML = ++stdNo
+  td2.innerHTML = name
+  td3.innerHTML = face_id
+  td4.innerHTML = mask
+  td5.innerHTML = status
+
+  tr.appendChild(td1)
+  tr.appendChild(td2)
+  tr.appendChild(td3)
+  tr.appendChild(td4)
+  tr.appendChild(td5)
+
+  tbody.appendChild(tr)
+}
+
+function AddAllItemsToTable(TheStudent) {
+  stdNo = 0
+  tbody.innerHTML = ''
+  TheStudent.forEach(element => {
+    AddItemToTable(element.card_id, element.name, element.face_id , element.mask_status)
+  });
+}
+
+function GetAllDataOnce() {
+  const dbRef = ref(db)
+
+  get(child(dbRef, "Attendance"))
+  .then((snapshot) => {
+    var students = []
+
+    snapshot.forEach(childSnapshot => {
+      students.push(childSnapshot.val())
+    })
+    AddAllItemsToTable(students)
+  })
+}
+
+function GetAllDataRealtime() {
+  const dbRef = ref(db, "Attendance")
+
+  onValue(dbRef,(snapshot) => {
+    var students = []
+    
+    snapshot.forEach(childSnapshot => {
+      students.push(childSnapshot.val())
+    })
+    AddAllItemsToTable(students)
+  })
+}
+window.onload = GetAllDataRealtime
+
+window.addEventListener('DOMContentLoaded', ()=> {
+            const menuBtn = document.querySelector('#menu-btn')
+            const dropdown = document.querySelector('#dropdown')
+            
+            menuBtn.addEventListener('click', () => {
+                dropdown.classList.toggle('hidden')
+                dropdown.classList.toggle('flex')
+            })
+
+        })
+</script>
+</html>
